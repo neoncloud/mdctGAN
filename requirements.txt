@@ -1,0 +1,10 @@
+bottleneck_transformer_pytorch==0.1.4
+dominate
+einops
+matplotlib
+numpy
+Pillow
+scipy
+torch
+torchaudio
+torchvision
