@@ -1,0 +1,1 @@
+find ./ -name '*.wav' -exec bash -c 'ffmpeg -i $0 -c:a flac -ar 48000 -compression_level 12 ${0/.wav/.flac} && rm $0' {} \;
