@@ -1,5 +1,5 @@
 # mdctGAN: Taming transformer-based GAN for speech super-resolution with Modified DCT spectra
-
+[arXiv](https://arxiv.org/abs/2305.11104)
 ## Requirements
 * bottleneck_transformer_pytorch==0.1.4
 * dominate
