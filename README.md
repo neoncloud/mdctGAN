@@ -1,4 +1,13 @@
-# mdctGAN: Taming transformer-based GAN for speech super-resolution with Modified DCT spectra
+<div align="center">
+  <h1>mdctGAN: Taming transformer-based GAN for speech super-resolution with Modified DCT spectra</h1>
+</div>
+
+<div align="center">
+<strong>By: Chenhao Shuai, Chaohua Shi, Lu Gan and Hongqing Liu</strong>
+</div>
+
+Accepted in the [INTERSPEECH 2023](https://www.interspeech2023.org/)
+
 [arXiv](https://arxiv.org/abs/2305.11104)
 ## Requirements
 * bottleneck_transformer_pytorch==0.1.4
