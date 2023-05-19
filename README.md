@@ -6,9 +6,10 @@
 <strong>By: Chenhao Shuai, Chaohua Shi, Lu Gan and Hongqing Liu</strong>
 </div>
 
-Accepted in the [INTERSPEECH 2023](https://www.interspeech2023.org/)
+<div align="center">
+  Accepted in the <a href="https://www.interspeech2023.org/"><strong>INTERSPEECH 2023</strong></a>  [<a href="https://arxiv.org/abs/2305.11104">arXiv</a>]
+</div>
 
-[arXiv](https://arxiv.org/abs/2305.11104)
 ## Requirements
 * bottleneck_transformer_pytorch==0.1.4
 * dominate
