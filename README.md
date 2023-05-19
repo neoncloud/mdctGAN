@@ -13,7 +13,11 @@
 * torchvision
 
 ## Data Preparation
-Firstly, Prepare your dataset index file like this (VCTK dataset example):
+Firstly, for excessively long speech audio file, we recommend that you remove long gaps and split it into smaller segments. Other than this no other pre-processing is required, the program will automatically sample a random section from the longer audio file.
+
+It also automatically resamples the high sample rate audio to the low sample rate and upsamples it again to the target sample rate. This process simulates the loss of speech after downsampling. And up-sampling again aligns the low-res audio with the original high sample rate audio. So you don't need to manually resample the original audio.
+
+Secondly, Prepare your dataset index file like this (VCTK dataset example):
 ```
 wav48/p250/p250_328.wav
 wav48/p310/p310_345.wav
@@ -29,9 +33,8 @@ wav48/p236/p236_231.wav
 wav48/p301/p301_334.wav
 ...
 ```
-Save it to the root directory of your dataset and the program will splice the parent folder of index file with the relative path of the records in the file. You can also find the index file used in our experiments in `data/train.csv`.
+Save it to the root directory of your dataset as a text file and the program will splice the parent folder of index file with the relative path of the records in the file. You can also find the index file used in our experiments in `data/train.csv`.
 
-Secondly, for excessively long audio file, we recommend that you split it into smaller segments and remove long gaps. Other than this no other pre-processing is required, the program will automatically sample a random section from the longer audio file.
 ## Train
 Modify & run `sh train.sh`. Detailed explanation of args can be found in `options/base_options.py` and `options/train_options.py`
 
