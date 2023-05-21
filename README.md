@@ -91,3 +91,6 @@ Modify & run `sh gen_audio.sh`.
 
 ## Acknowledgement
 This code repository refers heavily to the [official pix2pixHD implementation](https://github.com/NVIDIA/pix2pixHD). Also, this work is based on an improved version of my undergraduate Final Year Project, see: [pix2pixHDAudioSR](https://github.com/neoncloud/pix2pixHDAudioSR)
+
+## Bonus
+Try `FastMDCT4` in `models/mdct.py` to have faster MDCT conversion.
