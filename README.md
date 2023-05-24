@@ -21,6 +21,7 @@
 * torch
 * torchaudio
 * torchvision
+* torch_scatter (Optional if you want to use `FastMDCT4`)
 
 ## Data Preparation
 Firstly, for excessively long speech audio file, we recommend that you remove long gaps and split it into smaller segments. Other than this no other pre-processing is required, the program will automatically sample a random section from the longer audio file.
