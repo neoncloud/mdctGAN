@@ -93,4 +93,14 @@ Modify & run `sh gen_audio.sh`.
 This code repository refers heavily to the [official pix2pixHD implementation](https://github.com/NVIDIA/pix2pixHD). Also, this work is based on an improved version of my undergraduate Final Year Project, see: [pix2pixHDAudioSR](https://github.com/neoncloud/pix2pixHDAudioSR)
 
 ## Bonus
-Try `FastMDCT4` in `models/mdct.py` to have faster MDCT conversion.
+Try `FastMDCT4`/`FastIMDCT4` in `models/mdct.py` to have faster MDCT conversion. You can use `FastMDCT4` as an in-place replacement for `MDCT4`, or modify the import statement in `models/pix2pixHD_model.py` to `from .mdct import FastMDCT4 as MDCT4, FastIMDCT4 as IMDCT4`
+
+On my computer (RTX3070 laptop, Intel Core i7 11800H), each forward transformation saves 2ms.
+
+```python
+sig = torch.randn(64,32512, device='cuda')
+%timeit -r 20 -n 500 mdct(sig)
+# 9.61 ms ± 643 µs per loop (mean ± std. dev. of 20 runs, 500 loops each)
+%timeit -r 20 -n 500 fast_mdct(sig)
+# 7.68 ms ± 691 µs per loop (mean ± std. dev. of 20 runs, 500 loops each)
+```

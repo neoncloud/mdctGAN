@@ -8,3 +8,4 @@ scipy
 torch
 torchaudio
 torchvision
+torch_scatter
