@@ -575,12 +575,8 @@ class IMDCT4(torch.nn.Module):
 
 from typing import Optional, Union, Callable
 from einops import rearrange
+from torch_scatter import scatter
 class FastMDCT4(torch.nn.Module):
-    """
-    Implemented by Chenhao Shuai
-    Ref:_https://ccrma.stanford.edu/~bosse/proj/node28.html
-    Sporer T, Brandenburg K, Edler B, The Use of Multirate Filter Banks for Coding of High Quality Digital Audio, 6th European Signal Processing Conference (EUSIPCO), Amsterdam, June 1992, Vol.1 pp. 211-214.
-    """
     def __init__(self, n_fft: Optional[int] = 2048, hop_length: Optional[int] = None, win_length: Optional[int] = None, window: Union[torch.Tensor, np.ndarray, list, Callable, None] = None, center: bool = True, pad_mode: str = 'constant', device: str = 'cuda') -> None:
         super().__init__()
         self.n_fft = n_fft
@@ -630,6 +626,8 @@ class FastMDCT4(torch.nn.Module):
                 dtype=torch.long, device=self.device)
         ), dim=0)
 
+        # self.sqrtN = torch.sqrt(torch.tensor(
+        #     [self.n_fft], device=self.device, dtype=torch.float64))
         self.post_exp = torch.exp(
             -2j*torch.pi/self.n_fft*(
                 torch.arange(
@@ -640,14 +638,12 @@ class FastMDCT4(torch.nn.Module):
                     device=self.device
                 )+1/8
             )
-        )
+        ).to(torch.complex64)
 
         self.pre_exp = (self.make_pre_exp()*self.window).to(torch.complex64)
-        self.post_exp = self.post_exp.to(torch.complex64)
-        # self.pre_idx = self.make_pre_idx()
+        self.pre_idx = self.make_pre_idx()
         self.post_idx = self.make_post_idx()
-        self.idx = self.idx.clone().mT.roll(self.n_fft//8,0).contiguous()
-        self.kernel = self.pre_exp[..., self.idx].permute(1,0,2).contiguous()
+        # self.idx = self.idx.clone().mT.roll(self.n_fft//8,0).contiguous()
 
     def make_pre_exp(self):
         sgn = torch.ones(1, self.n_fft, dtype=torch.complex128,
@@ -659,14 +655,22 @@ class FastMDCT4(torch.nn.Module):
         sgn[..., self.idx[1]] *= -self.post_exp
         sgn[..., self.idx[2]] *= -1j*self.post_exp
         sgn[..., self.idx[3]] *= 1j*self.post_exp
-        return sgn.roll(-self.n_fft//4, dims=-1).to(self.device).contiguous()
+        return sgn.roll(-self.n_fft//4, dims=-1).contiguous()
 
+    def make_pre_idx(self):
+        i = torch.arange(start=0, end=self.n_fft, step=1, dtype=torch.long, device=self.device)
+        i = i.roll(self.n_fft//4,dims=-1)
+        idx_ = torch.stack([i[self.idx[0]], i[self.idx[1]], i[self.idx[2]], i[self.idx[3]]],dim=1)
+        index = torch.zeros(1,self.n_fft,device=self.device, dtype=torch.long)
+        for i in torch.arange(0,self.n_fft//4,dtype=torch.long):
+          index[...,idx_[i]]=i
+        return index.squeeze().contiguous()
 
     def make_post_idx(self):
         idx = torch.arange(self.n_fft//2, dtype=torch.long,
                            device=self.device).reshape(-1, 2)
         idx[:, 1] = idx[:, 1].flip(-1)
-        return idx.flatten()
+        return idx.flatten().contiguous()
 
     def forward(self, signal: torch.tensor, return_frames: bool = False):
         if signal.dim() == 2: # B T (mono)
@@ -690,31 +694,16 @@ class FastMDCT4(torch.nn.Module):
 
         # Slice the signal with overlapping
         signal = signal.unfold(dimension=-1, size=self.win_length, step=self.hop_length)
-        # B C T -> B C N t
-        B,C,N,t = signal.shape
-
-        # Black magik here: fully exploiting the symmetric property of O2FFT,
-        # by rearranging the original real sequence into
-        # the real and imag part of a new sequence with half of the length.
-        # pre-twiddle
-        signal = torch.gather(signal[...,None].expand(-1, -1, -1, -1, self.n_fft//4), -2, self.idx[None, None, None,...].expand(B, C, N, -1, -1))
-        signal = rearrange(signal, 'B C N t n -> (B C N) t n')
-        signal = torch.nn.functional.conv1d(
-            input=signal.to(torch.complex64),
-            weight=self.kernel,
-            stride=1,
-            groups=self.n_fft//4
-        )
-        signal = torch.fft.fft(signal[...,0], dim=-1)
-        
+        signal = signal*self.pre_exp
+        signal = scatter(signal, self.pre_idx, dim=-1, reduce='sum')
+        signal = torch.fft.fft(signal,dim=-1)
         # post-twiddle
         signal = torch.conj_physical(signal*self.post_exp)
         # rearranging
         signal = torch.view_as_real(signal)
-        signal = signal.view(B*C*N, -1)[..., self.post_idx]
-        signal = rearrange(signal, '(B C N) t -> B C N t', B=B, C=C)
+        signal = signal.flatten(-2)[..., self.post_idx]
 
-        return signal
+        return signal, None
 
 
 class FastIMDCT4(torch.nn.Module):
