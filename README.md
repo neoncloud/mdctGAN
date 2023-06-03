@@ -23,6 +23,9 @@
 * torchvision
 * torch_scatter (Optional if you want to use `FastMDCT4`)
 
+## Pretrained Models
+[![HF Models](https://img.shields.io/badge/%F0%9F%A4%97Hugging%20Face-models-green)](https://huggingface.co/neoncloud/mdctGAN)
+
 ## Data Preparation
 Firstly, for excessively long speech audio file, we recommend that you remove long gaps and split it into smaller segments. Other than this no other pre-processing is required, the program will automatically sample a random section from the longer audio file.
 
